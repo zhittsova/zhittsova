@@ -6,11 +6,11 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: update-readme-cards-${{ github.ref }}
+  group: update-readme-cards
   cancel-in-progress: true
 
 jobs:
-  build:
+  update-cards:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -40,6 +40,7 @@ jobs:
           path: profile/top-langs.svg
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # Intentionally fixed to my repos to support featured profile pins.
       - name: Generate featured pin card 1
         uses: readme-tools/github-readme-stats-action@b4d2ef3b8051484b318d455163153b23a2b35fa2 # v1
         with:
