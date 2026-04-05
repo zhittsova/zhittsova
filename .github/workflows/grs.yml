@@ -1,48 +1,71 @@
-name: Update README cards
+name: Update Profile README Cards
 
 on:
   schedule:
     - cron: "0 0 * * *" # Runs once daily at midnight
   workflow_dispatch:
 
+concurrency:
+  group: update-readme-cards-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Ensure profile directory exists
+        run: mkdir -p profile
 
       - name: Generate stats card
-        uses: readme-tools/github-readme-stats-action@v1
+        uses: readme-tools/github-readme-stats-action@b4d2ef3b8051484b318d455163153b23a2b35fa2 # v1
         with:
           card: stats
-          options: username=${{ github.repository_owner }}&show_icons=true
+          options: username=${{ github.repository_owner }}&show_icons=true&include_all_commits=true&rank_icon=percentile&hide_border=true&theme=transparent&custom_title=GitHub%20Activity
           path: profile/stats.svg
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate top languages card
-        uses: readme-tools/github-readme-stats-action@v1
+        uses: readme-tools/github-readme-stats-action@b4d2ef3b8051484b318d455163153b23a2b35fa2 # v1
         with:
           card: top-langs
-          options: username=${{ github.repository_owner }}&layout=compact&langs_count=6
+          options: username=${{ github.repository_owner }}&layout=compact&langs_count=8&hide=html,css&hide_border=true&theme=transparent&custom_title=Core%20Languages
           path: profile/top-langs.svg
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Generate pin card
-        uses: readme-tools/github-readme-stats-action@v1
+      - name: Generate featured pin card 1
+        uses: readme-tools/github-readme-stats-action@b4d2ef3b8051484b318d455163153b23a2b35fa2 # v1
         with:
           card: pin
-          options: username=readme-tools&repo=github-readme-stats
-          path: profile/pin-readme-tools-github-readme-stats.svg
+          options: username=zhittsova&repo=agri-weather-yield-drivers&show_owner=false&hide_border=true&theme=transparent
+          path: profile/pin-featured-1.svg
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Commit cards
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add profile/*.svg
-          git commit -m "Update README cards" || exit 0
-          git push
+      - name: Generate featured pin card 2
+        uses: readme-tools/github-readme-stats-action@b4d2ef3b8051484b318d455163153b23a2b35fa2 # v1
+        with:
+          card: pin
+          options: username=zhittsova&repo=bi-python-uv-project-scaffolder&show_owner=false&hide_border=true&theme=transparent
+          path: profile/pin-featured-2.svg
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create or update cards PR
+        uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          add-paths: |
+            profile/*.svg
+          commit-message: "chore(profile): update README cards"
+          title: "chore(profile): update README cards"
+          body: |
+            Automated update of profile README card SVG assets.
+          branch: "ci/update-readme-cards"
+          base: "main"
+          delete-branch: false
