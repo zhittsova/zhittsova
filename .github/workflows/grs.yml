@@ -2,7 +2,7 @@ name: Update Profile README Cards
 
 on:
   schedule:
-    - cron: "0 0 * * *" # Runs once daily at midnight
+    - cron: "0 0 * * *" # Runs once daily at midnight UTC
   workflow_dispatch:
 
 concurrency:
@@ -46,7 +46,7 @@ jobs:
         with:
           card: pin
           options: username=zhittsova&repo=agri-weather-yield-drivers&show_owner=false&hide_border=true&theme=transparent
-          path: profile/pin-featured-1.svg
+          path: profile/pin-agri-weather-yield-drivers.svg
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Generate featured pin card 2
@@ -54,7 +54,7 @@ jobs:
         with:
           card: pin
           options: username=zhittsova&repo=bi-python-uv-project-scaffolder&show_owner=false&hide_border=true&theme=transparent
-          path: profile/pin-featured-2.svg
+          path: profile/pin-bi-python-uv-project-scaffolder.svg
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create or update cards PR
