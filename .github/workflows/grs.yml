@@ -11,7 +11,7 @@ on:
       - ".github/scripts/card-unavailable-template.svg"
 
 concurrency:
-  group: update-readme-cards
+  group: update-readme-cards-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -35,7 +35,7 @@ jobs:
           RETRY_COUNT: ${{ vars.CARDS_RETRY_COUNT || '2' }}
           RETRY_DELAY_SECONDS: ${{ vars.CARDS_RETRY_DELAY_SECONDS || '2' }}
           ALLOW_PLACEHOLDER_FALLBACK: ${{ vars.CARDS_ALLOW_PLACEHOLDER_FALLBACK || '1' }}
-          STRICT_REUSE_ON_GENERATOR_ERRORS: ${{ vars.CARDS_STRICT_REUSE_ON_GENERATOR_ERRORS || (github.event_name == 'pull_request' && '1' || '0') }}
+          FAIL_ON_GENERATOR_ERRORS: ${{ vars.CARDS_FAIL_ON_GENERATOR_ERRORS || vars.CARDS_STRICT_REUSE_ON_GENERATOR_ERRORS || (github.event_name == 'pull_request' && '1' || '0') }}
         run: python .github/scripts/generate-profile-cards.py
 
       - name: Upload generated cards artifact

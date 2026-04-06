@@ -22,6 +22,18 @@ DISALLOWED_SVG_RE: Final[re.Pattern[str]] = re.compile(
     r"<\s*/?\s*(script|foreignObject)([\s>])",
     re.IGNORECASE,
 )
+DISALLOWED_EVENT_HANDLER_RE: Final[re.Pattern[str]] = re.compile(
+    r"\son[a-z][\w:-]*\s*=",
+    re.IGNORECASE,
+)
+DISALLOWED_JS_URL_RE: Final[re.Pattern[str]] = re.compile(
+    r"(?:href|xlink:href|src)\s*=\s*['\"]\s*javascript:",
+    re.IGNORECASE,
+)
+DISALLOWED_EXTERNAL_REF_RE: Final[re.Pattern[str]] = re.compile(
+    r"(?:href|xlink:href|src)\s*=\s*['\"]\s*(?:https?:)?//",
+    re.IGNORECASE,
+)
 PROFILE_DIR: Final[Path] = Path("profile")
 SCRIPT_DIR: Final[Path] = Path(__file__).resolve().parent
 PLACEHOLDER_TEMPLATE_PATH: Final[Path] = SCRIPT_DIR / "card-unavailable-template.svg"
@@ -80,6 +92,15 @@ def validate_svg(payload: bytes, content_type: str) -> str | None:
     if DISALLOWED_SVG_RE.search(text):
         return "disallowed SVG content (script/foreignObject)"
 
+    if DISALLOWED_EVENT_HANDLER_RE.search(text):
+        return "disallowed SVG event-handler attribute"
+
+    if DISALLOWED_JS_URL_RE.search(text):
+        return "disallowed javascript URL in SVG"
+
+    if DISALLOWED_EXTERNAL_REF_RE.search(text):
+        return "disallowed external reference in SVG"
+
     return None
 
 
@@ -99,7 +120,7 @@ def fetch_svg(
     retry_count: int,
     retry_delay_seconds: int,
     allow_placeholder_fallback: bool,
-    strict_reuse_on_generator_errors: bool,
+    fail_on_generator_errors: bool,
 ) -> bool:
     last_error = "unknown error"
     had_generator_like_failure = False
@@ -148,9 +169,9 @@ def fetch_svg(
         flush=True,
     )
 
-    if strict_reuse_on_generator_errors and had_generator_like_failure:
+    if fail_on_generator_errors and had_generator_like_failure:
         print(
-            f"ERROR: strict mode enabled; refusing fallback for {output} after: {last_error}",
+            f"ERROR: fail-on-generator-errors enabled; refusing fallback for {output} after: {last_error}",
             file=sys.stderr,
             flush=True,
         )
@@ -257,8 +278,9 @@ def main() -> int:
         return 1
 
     allow_placeholder_fallback = as_bool("ALLOW_PLACEHOLDER_FALLBACK", False)
-    strict_reuse_on_generator_errors = as_bool(
-        "STRICT_REUSE_ON_GENERATOR_ERRORS", False
+    fail_on_generator_errors = as_bool(
+        "FAIL_ON_GENERATOR_ERRORS",
+        as_bool("STRICT_REUSE_ON_GENERATOR_ERRORS", False),
     )
 
     PROFILE_DIR.mkdir(parents=True, exist_ok=True)
@@ -274,7 +296,7 @@ def main() -> int:
             retry_count=retry_count,
             retry_delay_seconds=retry_delay_seconds,
             allow_placeholder_fallback=allow_placeholder_fallback,
-            strict_reuse_on_generator_errors=strict_reuse_on_generator_errors,
+            fail_on_generator_errors=fail_on_generator_errors,
         )
         if not ok:
             failures += 1
