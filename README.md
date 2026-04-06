@@ -1,11 +1,11 @@
 <h1 align="center">Hi, I'm Katerina Zhittsova 👋</h1>
 
 <p align="center">
-  <strong>Data & ML Engineer building forecasting and analytics systems for renewables, energy infrastructure, and power systems</strong>
+  <strong>Data & Analytics Engineer building forecasting and analytics systems for renewables, energy infrastructure, and power systems</strong>
 </p>
 
 <p align="center">
-  Renewable energy analytics • Energy-system forecasting • Renewable siting • Geospatial analytics • ETL/ELT systems
+  Energy & renewables analytics • Energy-system forecasting • Geospatial analytics • ETL/ELT systems
 </p>
 
 <p align="center">
@@ -29,8 +29,8 @@ My work includes:
 - weather and environmental data pipelines
 - ETL/ELT systems that turn exploratory analysis into maintainable production assets
 
-- 🌱 I’m currently deepening my skills in **scalable ML systems, data platform architecture, and production-grade tooling**
-- 🤝 I’m open to collaboration on **renewable energy analytics, energy-system forecasting, and geospatial decision-support workflows**
+- 🌱 I’m currently deepening my skills in **forecasting systems, data platform architecture, production-grade tooling, and AI-assisted analytics automation**
+- 🤝 I’m open to collaboration on **renewable energy analytics, energy-system forecasting, and decision-support workflows**
 
 ### Selected public work
 
