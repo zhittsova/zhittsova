@@ -7,8 +7,16 @@ import subprocess
 import sys
 from typing import Any, Final
 
-DEPENDABOT_LOGIN: Final[str] = "dependabot[bot]"
-DEPENDABOT_BRANCH_PREFIX: Final[str] = "dependabot/github_actions/"
+DEPENDABOT_LOGINS: Final[frozenset[str]] = frozenset(
+    {
+        "dependabot[bot]",
+        "app/dependabot",
+    }
+)
+DEPENDABOT_BRANCH_PREFIXES: Final[tuple[str, ...]] = (
+    "dependabot/github_actions/",
+    "dependabot/github-actions/",
+)
 TARGET_BASE_BRANCH: Final[str] = "main"
 
 
@@ -42,21 +50,21 @@ def run_gh(args: list[str], *, expect_json: bool = False) -> Any:
         raise RuntimeError("gh command did not return valid JSON") from exc
 
 
-def should_process_pr(pr: dict[str, Any]) -> bool:
+def ineligibility_reason(pr: dict[str, Any]) -> str | None:
     head_ref = str(pr.get("headRefName") or "")
     base_ref = str(pr.get("baseRefName") or "")
     is_draft = bool(pr.get("isDraft"))
     author_login = str((pr.get("author") or {}).get("login") or "")
 
-    if author_login != DEPENDABOT_LOGIN:
-        return False
-    if not head_ref.startswith(DEPENDABOT_BRANCH_PREFIX):
-        return False
+    if author_login not in DEPENDABOT_LOGINS:
+        return f"author={author_login or '<missing>'}"
+    if not any(head_ref.startswith(prefix) for prefix in DEPENDABOT_BRANCH_PREFIXES):
+        return f"headRefName={head_ref or '<missing>'}"
     if base_ref != TARGET_BASE_BRANCH:
-        return False
+        return f"baseRefName={base_ref or '<missing>'}"
     if is_draft:
-        return False
-    return True
+        return "draft=true"
+    return None
 
 
 def checks_are_green(pr_number: int, repository: str) -> bool:
@@ -85,8 +93,9 @@ def process_pr(pr_number: int, repository: str) -> None:
 
     pr_url = str(pr.get("url") or f"PR #{pr_number}")
 
-    if not should_process_pr(pr):
-        print(f"Skipping PR #{pr_number} (not eligible yet)")
+    reason = ineligibility_reason(pr)
+    if reason is not None:
+        print(f"Skipping PR #{pr_number} (not eligible yet: {reason})")
         return
 
     if pr.get("autoMergeRequest") is not None:
@@ -129,7 +138,7 @@ def list_candidate_pr_numbers(repository: str) -> list[int]:
 
     numbers: list[int] = []
     for pr in prs:
-        if should_process_pr(pr):
+        if ineligibility_reason(pr) is None:
             number = pr.get("number")
             if isinstance(number, int):
                 numbers.append(number)
@@ -147,7 +156,7 @@ def main() -> int:
         return 1
 
     if event_name == "pull_request_target":
-        if event_actor != DEPENDABOT_LOGIN:
+        if event_actor not in DEPENDABOT_LOGINS:
             print(f"Skipping non-Dependabot actor: {event_actor}")
             return 0
 
