@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="495" height="195" viewBox="0 0 495 195" role="img" aria-label="Card unavailable">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0d1117"/>
+      <stop offset="100%" stop-color="#1f2937"/>
+    </linearGradient>
+  </defs>
+  <rect x="0.5" y="0.5" width="494" height="194" rx="8" ry="8" fill="url(#bg)" stroke="#30363d"/>
+  <text x="24" y="78" fill="#f0f6fc" font-size="18" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif">Top Languages Card Unavailable</text>
+  <text x="24" y="108" fill="#9da7b3" font-size="13" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif">Source service temporarily unavailable.</text>
+  <text x="24" y="130" fill="#9da7b3" font-size="13" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif">A fresh card will be generated automatically on the next successful run.</text>
+</svg>
