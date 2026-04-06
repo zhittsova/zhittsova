@@ -25,7 +25,13 @@ jobs:
   enable-automerge:
     if: |
       github.event_name != 'pull_request_target' ||
-      (github.actor == 'dependabot[bot]' && startsWith(github.head_ref, 'dependabot/github_actions/'))
+      (
+        contains(fromJSON('["dependabot[bot]","app/dependabot"]'), github.actor) &&
+        (
+          startsWith(github.head_ref, 'dependabot/github_actions/') ||
+          startsWith(github.head_ref, 'dependabot/github-actions/')
+        )
+      )
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
