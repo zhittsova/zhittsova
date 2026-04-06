@@ -7,7 +7,8 @@ on:
   pull_request:
     paths:
       - ".github/workflows/grs.yml"
-      - ".github/scripts/generate-profile-cards.sh"
+      - ".github/scripts/generate-profile-cards.py"
+      - ".github/scripts/card-unavailable-template.svg"
 
 concurrency:
   group: update-readme-cards
@@ -24,10 +25,17 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: "3.13"
+
       - name: Generate cards
         env:
           OWNER: ${{ github.repository_owner }}
-        run: bash .github/scripts/generate-profile-cards.sh
+          RETRY_COUNT: ${{ vars.CARDS_RETRY_COUNT || '2' }}
+          RETRY_DELAY_SECONDS: ${{ vars.CARDS_RETRY_DELAY_SECONDS || '2' }}
+          ALLOW_PLACEHOLDER_FALLBACK: ${{ vars.CARDS_ALLOW_PLACEHOLDER_FALLBACK || '0' }}
+        run: python .github/scripts/generate-profile-cards.py
 
       - name: Upload generated cards artifact
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
