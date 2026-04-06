@@ -34,7 +34,7 @@ jobs:
           OWNER: ${{ github.repository_owner }}
           RETRY_COUNT: ${{ vars.CARDS_RETRY_COUNT || '2' }}
           RETRY_DELAY_SECONDS: ${{ vars.CARDS_RETRY_DELAY_SECONDS || '2' }}
-          ALLOW_PLACEHOLDER_FALLBACK: ${{ vars.CARDS_ALLOW_PLACEHOLDER_FALLBACK || '0' }}
+          ALLOW_PLACEHOLDER_FALLBACK: ${{ vars.CARDS_ALLOW_PLACEHOLDER_FALLBACK || '1' }}
         run: python .github/scripts/generate-profile-cards.py
 
       - name: Upload generated cards artifact
