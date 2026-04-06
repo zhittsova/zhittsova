@@ -62,12 +62,13 @@ A public analytical project using weather, yield, soil, and geospatial signals f
 
 ### Connect
 
-<p align="left">
-  <a href="https://github.com/zhittsova">
-    <img src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/github.svg" alt="GitHub" height="30" width="40" />
+<p align="center">
+  <a href="https://github.com/zhittsova" aria-label="GitHub profile">
+    <img src="https://img.shields.io/badge/GitHub-zhittsova-24292F?style=for-the-badge&logo=github&logoColor=white" alt="GitHub profile" />
   </a>
-  <a href="https://linkedin.com/in/zhittsova">
-    <img src="https://raw.githubusercontent.com/rahuldkjain/github-profile-readme-generator/master/src/images/icons/Social/linked-in-alt.svg" alt="LinkedIn" height="30" width="40" />
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://linkedin.com/in/zhittsova" aria-label="LinkedIn profile">
+    <img src="https://img.shields.io/badge/LinkedIn-Katerina%20Zhittsova-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn profile" />
   </a>
 </p>
 
