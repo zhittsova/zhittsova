@@ -19,7 +19,7 @@ SVG_START_RE: Final[re.Pattern[str]] = re.compile(
     re.IGNORECASE,
 )
 DISALLOWED_SVG_RE: Final[re.Pattern[str]] = re.compile(
-    r"<[\s]*/?[\s]*(script|foreignObject)([\s>])",
+    r"<\s*/?\s*(script|foreignObject)([\s>])",
     re.IGNORECASE,
 )
 PROFILE_DIR: Final[Path] = Path("profile")
@@ -99,8 +99,10 @@ def fetch_svg(
     retry_count: int,
     retry_delay_seconds: int,
     allow_placeholder_fallback: bool,
+    strict_reuse_on_generator_errors: bool,
 ) -> bool:
     last_error = "unknown error"
+    had_generator_like_failure = False
 
     # Retry if upstream is down (like now with http code 503)
     for attempt in range(1, retry_count + 1):
@@ -108,7 +110,7 @@ def fetch_svg(
             req = urllib.request.Request(
                 url,
                 headers={
-                    "Accept": "image/svg+xml,text/plain;q=0.9,*/*;q=0.8",
+                    "Accept": "image/svg+xml,*/*;q=0.8",
                 },
             )
             with urllib.request.urlopen(req, timeout=45) as response:
@@ -121,14 +123,18 @@ def fetch_svg(
                 return True
 
             last_error = validation_error
+            had_generator_like_failure = True
         except urllib.error.HTTPError as exc:
             last_error = f"HTTP {exc.code}: {exc.reason}"
+            if 400 <= exc.code < 500:
+                had_generator_like_failure = True
         except urllib.error.URLError as exc:
             last_error = f"URL error: {exc.reason}"
         except TimeoutError:
             last_error = "request timed out"
         except Exception as exc:  # noqa: BLE001
             last_error = f"unexpected error: {exc}"
+            had_generator_like_failure = True
 
         if attempt < retry_count:
             print(
@@ -141,6 +147,14 @@ def fetch_svg(
         f"WARN: all {retry_count} attempt(s) failed for {output}: {last_error}",
         flush=True,
     )
+
+    if strict_reuse_on_generator_errors and had_generator_like_failure:
+        print(
+            f"ERROR: strict mode enabled; refusing fallback for {output} after: {last_error}",
+            file=sys.stderr,
+            flush=True,
+        )
+        return False
 
     if output.exists():
         print(f"WARN: keeping existing file {output}", flush=True)
@@ -243,6 +257,9 @@ def main() -> int:
         return 1
 
     allow_placeholder_fallback = as_bool("ALLOW_PLACEHOLDER_FALLBACK", False)
+    strict_reuse_on_generator_errors = as_bool(
+        "STRICT_REUSE_ON_GENERATOR_ERRORS", False
+    )
 
     PROFILE_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -257,6 +274,7 @@ def main() -> int:
             retry_count=retry_count,
             retry_delay_seconds=retry_delay_seconds,
             allow_placeholder_fallback=allow_placeholder_fallback,
+            strict_reuse_on_generator_errors=strict_reuse_on_generator_errors,
         )
         if not ok:
             failures += 1

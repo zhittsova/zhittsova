@@ -7,6 +7,6 @@
   </defs>
   <rect x="0.5" y="0.5" width="494" height="194" rx="8" ry="8" fill="url(#bg)" stroke="#30363d"/>
   <text x="24" y="78" fill="#f0f6fc" font-size="18" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif">{{TITLE}}</text>
-  <text x="24" y="108" fill="#9da7b3" font-size="13" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif">Source service temporarily unavailable (HTTP 503).</text>
+  <text x="24" y="108" fill="#9da7b3" font-size="13" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif">Source service temporarily unavailable.</text>
   <text x="24" y="130" fill="#9da7b3" font-size="13" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, sans-serif">A fresh card will be generated automatically on the next successful run.</text>
 </svg>
