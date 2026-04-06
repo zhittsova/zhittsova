@@ -19,15 +19,24 @@
 
 ### What I work on
 
-I build data and ML systems for forecasting, analytical decision support, and infrastructure-facing applications across renewables, energy systems, and power-sector workflows.
+I build analytical and data workflows for decision support across renewables, energy systems, and infrastructure-facing use cases.
 
 My work includes:
 
-- renewable energy and energy-system analytics
-- forecasting and analytical workflows for operational and infrastructure decision support
-- renewable siting and geospatial workflows
-- weather and environmental data pipelines
-- ETL/ELT systems that turn exploratory analysis into maintainable production assets
+- energy and renewables analytics
+- forecasting-oriented analysis for operational and infrastructure decisions
+- ETL/ELT systems that turn exploratory analysis into maintainable assets
+- weather, environmental, and geospatial data workflows
+- reproducible reporting and analytical pipelines
+
+I like taking problems end-to-end: clarifying metrics and assumptions, structuring datasets, validating data quality, and building outputs that remain practical to maintain over time.
+
+### Current focus
+
+- building stronger forecasting and analytics workflows for energy-related domains
+- moving notebook-led analysis toward production-grade ETL/ELT and application structure
+- deepening data-platform and analytical-engineering skills
+- exploring AI-assisted analytics automation for decision-support workflows
 
 - 🌱 I’m currently deepening my skills in **forecasting systems, data platform architecture, production-grade tooling, and AI-assisted analytics automation**
 - 🤝 I’m open to collaboration on **renewable energy analytics, energy-system forecasting, and decision-support workflows**
@@ -45,20 +54,20 @@ My work includes:
 </table>
 
 **agri-weather-yield-drivers**
-A public analytical project using weather, yield, soil, and geospatial signals for renewable siting and environmental intelligence, with reproducible notebook-based research evolving into a more explicit ETL/ELT and production-oriented structure.
+A public analytical project combining weather, yield, soil, and geospatial signals for siting-oriented and environmental decision support, with notebook-based research evolving toward a more explicit ETL/ELT and production-oriented structure.
 
 ### Core stack
 
-`Python` · `PyTorch` · `scikit-learn` · `pandas` · `NumPy` · `FastAPI` · `PostgreSQL` · `DuckDB` · `Docker` · `AWS` · `TypeScript` · `React` · `Astro` · `Jupyter`
+`SQL` · `PostgreSQL` · `DuckDB` · `Python` · `pandas` · `NumPy` · `PyTorch` · `scikit-learn` · `Power BI` · `FastAPI` · `Docker` · `AWS` · `TypeScript` · `React` · `Astro` · `Jupyter` · `PostGIS`
 
 ### Ask me about
 
-- renewable energy analytics
-- energy-system forecasting
-- solar siting and yield drivers
+- energy and renewables analytics
+- forecasting-oriented analysis
 - geospatial and environmental data workflows
 - ETL/ELT architecture for analytical systems
-- Python-based ML and data engineering
+- KPI/reporting pipelines and decision-support outputs
+- Python-based analytics and data engineering
 
 ### Connect
 
@@ -76,4 +85,12 @@ A public analytical project using weather, yield, soil, and geospatial signals f
 
 <p align="center">
   <img src="./profile/stats.svg" alt="GitHub activity" />
+</p>
+
+### Blog RSS
+
+<p align="center">
+  <a href="https://zhittsova.com/rss.xml" aria-label="RSS blog feed">
+    <img src="https://img.shields.io/badge/RSS-Subscribe%20to%20the%20Blog-F97316?style=for-the-badge&logo=rss&logoColor=white" alt="RSS blog feed" />
+  </a>
 </p>
