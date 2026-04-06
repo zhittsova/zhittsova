@@ -10,13 +10,12 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  update-cards:
+  generate-cards:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -56,6 +55,34 @@ jobs:
           options: username=zhittsova&repo=bi-python-uv-project-scaffolder&show_owner=false&hide_border=true&theme=transparent
           path: profile/pin-bi-python-uv-project-scaffolder.svg
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload generated cards artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: profile-cards
+          path: profile/*.svg
+          if-no-files-found: error
+
+  create-cards-pr:
+    needs: generate-cards
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Ensure profile directory exists
+        run: mkdir -p profile
+
+      - name: Download generated cards artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: profile-cards
+          path: profile
 
       - name: Create or update cards PR
         uses: peter-evans/create-pull-request@22a9089034f40e5a961c8808d113e2c98fb63676 # v7
