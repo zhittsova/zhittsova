@@ -58,7 +58,9 @@ jobs:
           path: profile/${{ matrix.name }}.svg
           token: ${{ secrets.GITHUB_TOKEN }}
           core_version: "2.1.3"
-          fail_on_error: "true"
+          # Let the validator report the actual API error embedded in an error SVG.
+          # It must pass before an artifact can be uploaded.
+          fail_on_error: "false"
 
       - name: Validate generated card
         env:

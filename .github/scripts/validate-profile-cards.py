@@ -43,11 +43,11 @@ def validate_svg(payload: bytes) -> None:
             if re.search(r"@import", css, re.I) or any(not url.strip(" \t\r\n\"'").startswith("#") for url in urls):
                 raise ValueError("external CSS references are not allowed")
     labels = " ".join("".join(el.itertext()) for el in root.iter() if el.tag.endswith("}text"))
-    labels = " ".join(labels.lower().split())
+    labels = " ".join(labels.split())
     if not labels:
         raise ValueError("card has no visible text")
-    if any(message in labels for message in ERROR_MESSAGES):
-        raise ValueError("renderer returned an error or placeholder card")
+    if any(message in labels.lower() for message in ERROR_MESSAGES):
+        raise ValueError(f"renderer returned an error or placeholder card: {labels[:600]}")
 
 
 def main(paths: list[str]) -> int:
