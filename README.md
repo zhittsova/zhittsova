@@ -23,7 +23,7 @@ Where should a charging operator expand next? I built [NRW Charging Atlas](https
 
 You can screen districts for a rollout, inspect what drives their priority rankings and test proposed stations against current coverage. I pushed spatial joins and scoring into PostGIS, with Python for data validation and loading, GeoServer for map and feature services, and GeoNode for dataset discovery and metadata.
 
-[![NRW Charging Atlas dashboard with district rankings, a comparison map and the evidence behind each score](./profile/screenshots/nrw-charging-atlas.png)](https://zhittsova.com/blog/nrw-charging-atlas-geonode-postgis/)
+[![NRW Charging Atlas map with Recklinghausen selected and its charging coverage, priority rank and district evidence](./profile/screenshots/nrw-charging-atlas.jpg)](https://zhittsova.com/blog/nrw-charging-atlas-geonode-postgis/)
 
 [Explore the code](https://github.com/zhittsova/nrw-charging-atlas) · [Read the project story](https://zhittsova.com/blog/nrw-charging-atlas-geonode-postgis/) · [Try the visual walkthrough](https://zhittsova.com/blog/nrw-charging-atlas-local-walkthrough/) · [Open the slides](https://zhittsova.com/slides/nrw-charging-atlas.pdf)
 
