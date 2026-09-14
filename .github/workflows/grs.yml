@@ -2,13 +2,14 @@ name: Update Profile README Cards
 
 on:
   schedule:
-    - cron: "0 0 * * *" # Runs once daily at midnight UTC
+    - cron: "0 0 * * *"
   workflow_dispatch:
   pull_request:
     paths:
+      - "README.md"
+      - "profile/**"
       - ".github/workflows/grs.yml"
-      - ".github/scripts/generate-profile-cards.py"
-      - ".github/scripts/card-unavailable-template.svg"
+      - ".github/scripts/*profile*"
 
 concurrency:
   group: update-readme-cards-${{ github.ref }}
@@ -18,27 +19,29 @@ jobs:
   generate-cards:
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     permissions:
       contents: read
-
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
 
-      - name: Generate cards
+      - name: Test card generation and validation
+        run: python -m unittest discover -s .github/scripts -p 'test_profile_cards.py'
+
+      - name: Generate cards from public GitHub data
         env:
-          OWNER: ${{ github.repository_owner }}
-          RETRY_COUNT: ${{ vars.CARDS_RETRY_COUNT || '2' }}
-          RETRY_DELAY_SECONDS: ${{ vars.CARDS_RETRY_DELAY_SECONDS || '2' }}
-          ALLOW_PLACEHOLDER_FALLBACK: ${{ vars.CARDS_ALLOW_PLACEHOLDER_FALLBACK || '1' }}
-          FAIL_ON_GENERATOR_ERRORS: ${{ vars.CARDS_FAIL_ON_GENERATOR_ERRORS || vars.CARDS_STRICT_REUSE_ON_GENERATOR_ERRORS || (github.event_name == 'pull_request' && '1' || '0') }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python .github/scripts/generate-profile-cards.py
 
-      - name: Upload generated cards artifact
+      - name: Validate generated cards
+        run: python .github/scripts/validate-profile-cards.py profile/*.svg
+
+      - name: Upload generated cards
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: profile-cards
@@ -47,21 +50,16 @@ jobs:
 
   create-cards-pr:
     needs: generate-cards
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
-
     permissions:
       contents: write
       pull-requests: write
-
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Ensure profile directory exists
-        run: mkdir -p profile
-
-      - name: Download generated cards artifact
+      - name: Download generated cards
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: profile-cards
@@ -74,10 +72,9 @@ jobs:
           sign-commits: true
           add-paths: |
             profile/*.svg
-          commit-message: "chore(profile): update README cards"
-          title: "chore(profile): update README cards"
-          body: |
-            Automated update of profile README card SVG assets.
+          commit-message: "chore: refresh profile cards"
+          title: "chore: refresh profile cards"
+          body: "Refresh the profile cards from the GitHub API."
           branch: "ci/update-readme-cards"
           base: "main"
           delete-branch: false

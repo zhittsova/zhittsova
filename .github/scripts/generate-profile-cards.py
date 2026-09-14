@@ -1,315 +1,126 @@
 #!/usr/bin/env python3
-"""Generate profile card SVGs with validation and resilient fallback behavior."""
+"""Render profile cards from public GitHub REST data using only the standard library."""
 
+import json
 import os
-import re
-import sys
-import tempfile
-import time
-import urllib.error
-import urllib.parse
-import urllib.request
-from dataclasses import dataclass
+import textwrap
+from collections import Counter
 from html import escape
 from pathlib import Path
-from typing import Final
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
-SVG_START_RE: Final[re.Pattern[str]] = re.compile(
-    r"^[\s]*(<\?xml\s+[^>]*\?>\s*)?<svg([\s>])",
-    re.IGNORECASE,
-)
-DISALLOWED_SVG_RE: Final[re.Pattern[str]] = re.compile(
-    r"<\s*/?\s*(script|foreignObject)([\s>])",
-    re.IGNORECASE,
-)
-DISALLOWED_EVENT_HANDLER_RE: Final[re.Pattern[str]] = re.compile(
-    r"\son[a-z][\w:-]*\s*=",
-    re.IGNORECASE,
-)
-DISALLOWED_JS_URL_RE: Final[re.Pattern[str]] = re.compile(
-    r"(?:href|xlink:href|src)\s*=\s*['\"]\s*javascript:",
-    re.IGNORECASE,
-)
-DISALLOWED_EXTERNAL_REF_RE: Final[re.Pattern[str]] = re.compile(
-    r"(?:href|xlink:href|src)\s*=\s*['\"]\s*(?:https?:)?//",
-    re.IGNORECASE,
-)
-PROFILE_DIR: Final[Path] = Path("profile")
-SCRIPT_DIR: Final[Path] = Path(__file__).resolve().parent
-PLACEHOLDER_TEMPLATE_PATH: Final[Path] = SCRIPT_DIR / "card-unavailable-template.svg"
-BASE_GRS_URL: Final[str] = "https://github-readme-stats.vercel.app"
+USERNAME = "zhittsova"
+PINS = ("agri-weather-yield-drivers", "bi-python-uv-project-scaffolder")
+COLORS = ("#42c8a5", "#73b7e2", "#ba9ce8", "#e7b26d", "#e88299", "#a9ce79", "#cccbd0", "#88bbb1")
 
 
-@dataclass(frozen=True, slots=True)
-class CardSpec:
-    url: str
-    output: Path
-    placeholder_title: str
+def api(path: str):
+    headers = {"Accept": "application/vnd.github+json", "User-Agent": "zhittsova-profile-cards"}
+    if token := os.environ.get("GH_TOKEN"):
+        headers["Authorization"] = f"Bearer {token}"
+    with urlopen(Request(f"https://api.github.com/{path}", headers=headers), timeout=30) as response:
+        return json.load(response)
 
 
-def as_int(name: str, default: int) -> int:
-    raw = os.getenv(name)
-    if raw is None or raw.strip() == "":
-        return default
-    try:
-        value = int(raw)
-    except ValueError as exc:
-        raise ValueError(f"{name} must be an integer, got {raw!r}") from exc
-    if value < 1:
-        raise ValueError(f"{name} must be >= 1, got {value}")
-    return value
+def public_repositories() -> list[dict]:
+    repositories = []
+    page = 1
+    while True:
+        batch = api(f"users/{USERNAME}/repos?type=owner&per_page=100&page={page}")
+        repositories.extend(repo for repo in batch if not repo["private"] and not repo["fork"])
+        if len(batch) < 100:
+            return repositories
+        page += 1
 
 
-def as_bool(name: str, default: bool) -> bool:
-    raw = os.getenv(name)
-    if raw is None or raw.strip() == "":
-        return default
-    return raw.strip().lower() in {"1", "true", "yes", "on"}
+def search_count(kind: str, query: str) -> int:
+    result = api(f"search/{kind}?{urlencode({'q': query, 'per_page': 1})}")
+    if result.get("incomplete_results") is not False:
+        raise ValueError("GitHub returned incomplete search results")
+    count = result.get("total_count")
+    if type(count) is not int or count < 0:
+        raise ValueError("GitHub returned an invalid search count")
+    return count
 
 
-def write_placeholder_svg(output: Path, title: str) -> None:
-    output.parent.mkdir(parents=True, exist_ok=True)
-    template = PLACEHOLDER_TEMPLATE_PATH.read_text(encoding="utf-8")
-    svg = template.replace("{{TITLE}}", escape(title))
-    output.write_text(svg, encoding="utf-8")
+def label(x: int, y: int, text: str, *, size: int = 16, color: str = "#e8f2ec") -> str:
+    return f'<text x="{x}" y="{y}" font-size="{size}" fill="{color}">{escape(text)}</text>'
 
 
-def build_grs_url(path: str, params: dict[str, str]) -> str:
-    query = urllib.parse.urlencode(params, quote_via=urllib.parse.quote)
-    return f"{BASE_GRS_URL}{path}?{query}"
-
-
-def validate_svg(payload: bytes, content_type: str) -> str | None:
-    normalized_ct = content_type.split(";", 1)[0].strip().lower()
-    if normalized_ct != "image/svg+xml":
-        return f"unexpected Content-Type: {normalized_ct or '<missing>'}"
-
-    text = payload.decode("utf-8", errors="replace")
-    prefix = text[:512].replace("\r", "")
-    if SVG_START_RE.match(prefix) is None:
-        return "invalid SVG document start"
-
-    if DISALLOWED_SVG_RE.search(text):
-        return "disallowed SVG content (script/foreignObject)"
-
-    if DISALLOWED_EVENT_HANDLER_RE.search(text):
-        return "disallowed SVG event-handler attribute"
-
-    if DISALLOWED_JS_URL_RE.search(text):
-        return "disallowed javascript URL in SVG"
-
-    if DISALLOWED_EXTERNAL_REF_RE.search(text):
-        return "disallowed external reference in SVG"
-
-    return None
-
-
-def save_svg(path: Path, payload: bytes) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with tempfile.NamedTemporaryFile(delete=False, dir=path.parent) as tmp:
-        tmp.write(payload)
-        tmp_path = Path(tmp.name)
-    tmp_path.replace(path)
-
-
-def fetch_svg(
-    *,
-    url: str,
-    output: Path,
-    placeholder_title: str,
-    retry_count: int,
-    retry_delay_seconds: int,
-    allow_placeholder_fallback: bool,
-    fail_on_generator_errors: bool,
-) -> bool:
-    last_error = "unknown error"
-    had_generator_like_failure = False
-
-    # Retry if upstream is down (like now with http code 503)
-    for attempt in range(1, retry_count + 1):
-        try:
-            req = urllib.request.Request(
-                url,
-                headers={
-                    "Accept": "image/svg+xml,*/*;q=0.8",
-                },
-            )
-            with urllib.request.urlopen(req, timeout=45) as response:
-                content_type = response.headers.get("Content-Type", "")
-                payload = response.read()
-
-            validation_error = validate_svg(payload, content_type)
-            if validation_error is None:
-                save_svg(output, payload)
-                return True
-
-            last_error = validation_error
-            had_generator_like_failure = True
-        except urllib.error.HTTPError as exc:
-            last_error = f"HTTP {exc.code}: {exc.reason}"
-            if 400 <= exc.code < 500:
-                had_generator_like_failure = True
-        except urllib.error.URLError as exc:
-            last_error = f"URL error: {exc.reason}"
-        except TimeoutError:
-            last_error = "request timed out"
-        except Exception as exc:  # noqa: BLE001
-            last_error = f"unexpected error: {exc}"
-            had_generator_like_failure = True
-
-        if attempt < retry_count:
-            print(
-                f"WARN: attempt {attempt}/{retry_count} failed for {output}: {last_error}",
-                flush=True,
-            )
-            time.sleep(retry_delay_seconds)
-
-    print(
-        f"WARN: all {retry_count} attempt(s) failed for {output}: {last_error}",
-        flush=True,
-    )
-
-    if fail_on_generator_errors and had_generator_like_failure:
-        print(
-            f"ERROR: fail-on-generator-errors enabled; refusing fallback for {output} after: {last_error}",
-            file=sys.stderr,
-            flush=True,
-        )
-        return False
-
-    if output.exists():
-        print(f"WARN: keeping existing file {output}", flush=True)
-        return True
-
-    if allow_placeholder_fallback:
-        print(
-            f"WARN: no existing file for {output}; writing placeholder card", flush=True
-        )
-        try:
-            write_placeholder_svg(output, placeholder_title)
-            return True
-        except (OSError, ValueError) as exc:
-            print(f"WARN: failed to write placeholder for {output}: {exc}", flush=True)
-            return False
-
-    return False
-
-
-def build_cards(owner: str) -> tuple[CardSpec, ...]:
+def card(title: str, height: int, content: str) -> str:
     return (
-        CardSpec(
-            url=build_grs_url(
-                "/api",
-                {
-                    "username": owner,
-                    "show_icons": "true",
-                    "include_all_commits": "true",
-                    "rank_icon": "percentile",
-                    "hide_border": "true",
-                    "theme": "transparent",
-                    "custom_title": "GitHub Activity",
-                    "cache_seconds": "86400",
-                },
-            ),
-            output=PROFILE_DIR / "stats.svg",
-            placeholder_title="GitHub Activity Card Unavailable",
-        ),
-        CardSpec(
-            url=build_grs_url(
-                "/api/top-langs/",
-                {
-                    "username": owner,
-                    "layout": "compact",
-                    "langs_count": "8",
-                    "hide": "html,css",
-                    "hide_border": "true",
-                    "theme": "transparent",
-                    "custom_title": "Core Languages",
-                    "cache_seconds": "86400",
-                },
-            ),
-            output=PROFILE_DIR / "top-langs.svg",
-            placeholder_title="Top Languages Card Unavailable",
-        ),
-        CardSpec(
-            url=build_grs_url(
-                "/api/pin/",
-                {
-                    "username": "zhittsova",
-                    "repo": "agri-weather-yield-drivers",
-                    "show_owner": "false",
-                    "hide_border": "true",
-                    "theme": "transparent",
-                    "cache_seconds": "86400",
-                },
-            ),
-            output=PROFILE_DIR / "pin-agri-weather-yield-drivers.svg",
-            placeholder_title="agri-weather-yield-drivers Card Unavailable",
-        ),
-        CardSpec(
-            url=build_grs_url(
-                "/api/pin/",
-                {
-                    "username": "zhittsova",
-                    "repo": "bi-python-uv-project-scaffolder",
-                    "show_owner": "false",
-                    "hide_border": "true",
-                    "theme": "transparent",
-                    "cache_seconds": "86400",
-                },
-            ),
-            output=PROFILE_DIR / "pin-bi-python-uv-project-scaffolder.svg",
-            placeholder_title="bi-python-uv-project-scaffolder Card Unavailable",
-        ),
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="600" height="{height}" '
+        f'viewBox="0 0 600 {height}" role="img" aria-labelledby="title">'
+        f'<title id="title">{escape(title)}</title>'
+        f'<rect width="600" height="{height}" rx="12" fill="#0f1617"/>'
+        '<g font-family="Segoe UI, Ubuntu, Arial, sans-serif">'
+        + label(24, 36, title, size=20, color="#42c8a5")
+        + content
+        + "</g></svg>\n"
     )
 
 
-def main() -> int:
-    owner = os.getenv("OWNER") or os.getenv("GITHUB_REPOSITORY_OWNER")
-    if not owner:
-        print("OWNER (or GITHUB_REPOSITORY_OWNER) must be set", file=sys.stderr)
-        return 1
-
-    try:
-        retry_count = as_int("RETRY_COUNT", 2)
-        retry_delay_seconds = as_int("RETRY_DELAY_SECONDS", 2)
-    except ValueError as exc:
-        print(str(exc), file=sys.stderr)
-        return 1
-
-    allow_placeholder_fallback = as_bool("ALLOW_PLACEHOLDER_FALLBACK", False)
-    fail_on_generator_errors = as_bool(
-        "FAIL_ON_GENERATOR_ERRORS",
-        as_bool("STRICT_REUSE_ON_GENERATOR_ERRORS", False),
+def activity_card(repositories: list[dict]) -> str:
+    rows = (
+        ("Public repositories · excluding forks", len(repositories)),
+        ("Commits · public search index", search_count("commits", f"author:{USERNAME} is:public")),
+        ("Pull requests opened · public", search_count("issues", f"author:{USERNAME} is:pr is:public")),
+        ("Issues opened · public", search_count("issues", f"author:{USERNAME} is:issue is:public")),
+        ("Stars earned · owned public repositories", sum(repo["stargazers_count"] for repo in repositories)),
     )
+    content = "".join(
+        label(24, 78 + i * 34, name) + label(510, 78 + i * 34, f"{value:,}") for i, (name, value) in enumerate(rows)
+    )
+    return card("Public GitHub activity", 250, content)
 
-    PROFILE_DIR.mkdir(parents=True, exist_ok=True)
 
-    cards = build_cards(owner)
+def language_card(repositories: list[dict]) -> str:
+    languages = Counter()
+    for repo in repositories:
+        for language, size in api(f"repos/{USERNAME}/{repo['name']}/languages").items():
+            if language not in {"HTML", "CSS"}:
+                if type(size) is not int or size < 0:
+                    raise ValueError("GitHub returned an invalid language size")
+                languages[language] += size
+    total = sum(languages.values())
+    if not total:
+        raise ValueError("GitHub returned no language data")
+    selected = languages.most_common(7)
+    remainder = total - sum(size for _, size in selected)
+    if remainder:
+        selected.append(("Other", remainder))
+    content = label(24, 62, "By code bytes · owned public repositories · excluding HTML/CSS", size=13, color="#a8bcb5")
+    x = 24.0
+    for i, (language, size) in enumerate(selected):
+        width = 552 * size / total
+        content += f'<rect x="{x:.3f}" y="80" width="{width:.3f}" height="10" fill="{COLORS[i]}"/>'
+        content += label(24, 122 + i * 27, language, color=COLORS[i])
+        content += label(510, 122 + i * 27, f"{size / total:.2%}")
+        x += width
+    return card("Languages in public repositories", 145 + len(selected) * 27, content)
 
-    failures = 0
-    for card in cards:
-        ok = fetch_svg(
-            url=card.url,
-            output=card.output,
-            placeholder_title=card.placeholder_title,
-            retry_count=retry_count,
-            retry_delay_seconds=retry_delay_seconds,
-            allow_placeholder_fallback=allow_placeholder_fallback,
-            fail_on_generator_errors=fail_on_generator_errors,
-        )
-        if not ok:
-            failures += 1
 
-    if failures:
-        print(
-            f"Failed to generate {failures} card(s) and no fallback file was available",
-            file=sys.stderr,
-        )
-        return 1
+def repository_card(repo: dict) -> str:
+    description = textwrap.wrap(repo.get("description") or "", width=65)
+    content = "".join(label(24, 74 + i * 24, line, size=15) for i, line in enumerate(description))
+    footer_y = 90 + len(description) * 24
+    footer = f"{repo.get('language') or 'Repository'} · {repo['stargazers_count']} stars · {repo['forks_count']} forks"
+    return card(repo["name"], footer_y + 24, content + label(24, footer_y, footer, size=14, color="#a8bcb5"))
 
-    return 0
+
+def main() -> None:
+    repositories = public_repositories()
+    by_name = {repo["name"]: repo for repo in repositories}
+    # Finish every API read before replacing any checked-in card.
+    cards = {"stats": activity_card(repositories), "top-langs": language_card(repositories)}
+    cards.update({f"pin-{name}": repository_card(by_name[name]) for name in PINS})
+    destination = Path("profile")
+    destination.mkdir(exist_ok=True)
+    for name, content in cards.items():
+        (destination / f"{name}.svg").write_text(content)
+        print(f"Generated {name}.svg")
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
