@@ -11,17 +11,17 @@
   <a href="https://linkedin.com/in/zhittsova">LinkedIn</a>
 </p>
 
-I build retrieval-augmented LLM applications and evaluate whether their answers are supported by evidence, including when they should abstain from answering.
+I build AI applications that answer questions from source material. My focus is RAG and LLM evaluation: checking what the system retrieved, whether it supports the answer and when the system should abstain.
 
 My background is in Python/SQL pipelines, data validation and reporting datasets for energy, renewables and agribusiness. Working with operational, environmental and GPS data taught me to investigate the inputs behind a result.
 
-Based in Berlin. English C1; German B1-B2 and improving.
+Based in Berlin.
 
 ## Selected work
 
 ### RAG learning assistant and guardrails
 
-[Guardrails in LLM Deployment](https://github.com/zhittsova/project-llm-rag-guardrails-edu) compares baseline RAG with layered guardrails. It combines BGE-M3 retrieval, Chroma metadata filtering and OpenAI-compatible classification, answer generation and verification.
+I built [Guardrails in LLM Deployment](https://github.com/zhittsova/project-llm-rag-guardrails-edu) to compare baseline RAG with layered guardrails. The learning assistant combines BGE-M3 retrieval, Chroma metadata filtering and OpenAI-compatible classification, answer generation and verification.
 
 You can try the offline demo, inspect the automated tests and use local tools to review evaluation data. The workflow separates calibration from final evaluation.
 
@@ -56,7 +56,7 @@ Map previews: © EuroGeographics and © OpenStreetMap contributors.
 
 ### A repeatable start for Python BI projects
 
-[bi-python-uv-project-scaffolder](https://github.com/zhittsova/bi-python-uv-project-scaffolder) creates a starting structure for BI projects using Python and uv. It supports the practical setup work behind repeatable analytical pipelines.
+[bi-python-uv-project-scaffolder](https://github.com/zhittsova/bi-python-uv-project-scaffolder) handles the initial structure and setup for BI projects using Python and uv, so I can start working on the pipeline.
 
 [![Python and uv BI project scaffolder repository](./profile/pin-bi-python-uv-project-scaffolder.svg)](https://github.com/zhittsova/bi-python-uv-project-scaffolder)
 
