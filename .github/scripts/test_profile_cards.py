@@ -59,7 +59,7 @@ class ProfileCardTests(unittest.TestCase):
         with patch.object(generator, "api", return_value=data):
             result = generator.language_card([{"name": "project"}])
         self.assertIn(">Other</text>", result)
-        self.assertIn("20.0%", result)
+        self.assertIn("20.00%", result)
         cards.validate_svg(result.encode())
 
     def test_empty_language_data_fails_generation(self):

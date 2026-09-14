@@ -96,7 +96,7 @@ def language_card(repositories: list[dict]) -> str:
         width = 552 * size / total
         content += f'<rect x="{x:.3f}" y="80" width="{width:.3f}" height="10" fill="{COLORS[i]}"/>'
         content += label(24, 122 + i * 27, language, color=COLORS[i])
-        content += label(510, 122 + i * 27, f"{size / total:.1%}")
+        content += label(510, 122 + i * 27, f"{size / total:.2%}")
         x += width
     return card("Languages in public repositories", 145 + len(selected) * 27, content)
 
