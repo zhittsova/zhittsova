@@ -1,7 +1,7 @@
 <h1 align="center">Hi, I'm Katerina Zhittsova 👋</h1>
 
 <p align="center">
-  <strong>Data & analytics engineer · Energy, geospatial BI and forecasting</strong>
+  <strong>AI engineer & data scientist</strong>
 </p>
 
 <p align="center">
@@ -11,9 +11,8 @@
   <a href="https://linkedin.com/in/zhittsova">LinkedIn</a>
 </p>
 
-I build data pipelines and analytical applications for energy and infrastructure decisions. I'm interested in the whole path from a business question to a working tool: choosing the data, making assumptions explicit, and giving people a way to investigate the result.
+AI engineer and data scientist working end-to-end, from data and pipelines to models and finished tools. Currently working on LLM embeddings, forecasting and data platforms.
 
-My current work brings together geospatial BI, energy and renewables analytics, and reproducible Python and SQL workflows. I'm also developing my forecasting and data-platform skills.
 
 ## Selected work
 
