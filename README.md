@@ -1,7 +1,7 @@
 <h1 align="center">Hi, I'm Katerina Zhittsova 👋</h1>
 
 <p align="center">
-  <strong>Data & analytics engineer · Energy, geospatial BI and forecasting</strong>
+  <strong>AI Engineer · RAG & LLM Evaluation · Python, SQL & Data Engineering</strong>
 </p>
 
 <p align="center">
@@ -11,11 +11,21 @@
   <a href="https://linkedin.com/in/zhittsova">LinkedIn</a>
 </p>
 
-I build data pipelines and analytical applications for energy and infrastructure decisions. I'm interested in the whole path from a business question to a working tool: choosing the data, making assumptions explicit, and giving people a way to investigate the result.
+I build AI applications that answer questions from source material. My focus is RAG and LLM evaluation: checking what the system retrieved, whether it supports the answer and when the system should abstain.
 
-My current work brings together geospatial BI, energy and renewables analytics, and reproducible Python and SQL workflows. I'm also developing my forecasting and data-platform skills.
+My background is in Python/SQL pipelines, data validation and reporting datasets for energy, renewables and agribusiness. Working with operational, environmental and GPS data taught me to investigate the inputs behind a result.
+
+Based in Berlin.
 
 ## Selected work
+
+### RAG learning assistant and guardrails
+
+I built [Guardrails in LLM Deployment](https://github.com/zhittsova/project-llm-rag-guardrails-edu) to compare baseline RAG with layered guardrails. The learning assistant combines BGE-M3 retrieval, Chroma metadata filtering and OpenAI-compatible classification, answer generation and verification.
+
+You can try the offline demo, inspect the automated tests and use local tools to review evaluation data. The workflow separates calibration from final evaluation.
+
+[Explore the code](https://github.com/zhittsova/project-llm-rag-guardrails-edu) · [Try the offline demo](https://github.com/zhittsova/project-llm-rag-guardrails-edu#local-quick-start) · [Read the evaluation notes](https://github.com/zhittsova/project-llm-rag-guardrails-edu#evidence-status)
 
 ### NRW Charging Atlas
 
@@ -46,7 +56,7 @@ Map previews: © EuroGeographics and © OpenStreetMap contributors.
 
 ### A repeatable start for Python BI projects
 
-[bi-python-uv-project-scaffolder](https://github.com/zhittsova/bi-python-uv-project-scaffolder) creates a starting structure for BI projects using Python and uv. It supports the practical setup work behind repeatable analytical pipelines.
+[bi-python-uv-project-scaffolder](https://github.com/zhittsova/bi-python-uv-project-scaffolder) handles the initial structure and setup for BI projects using Python and uv, so I can start working on the pipeline.
 
 [![Python and uv BI project scaffolder repository](./profile/pin-bi-python-uv-project-scaffolder.svg)](https://github.com/zhittsova/bi-python-uv-project-scaffolder)
 
@@ -60,7 +70,7 @@ Map previews: © EuroGeographics and © OpenStreetMap contributors.
 
 ## Tools I work with
 
-`Python` · `SQL` · `PostgreSQL / PostGIS` · `DuckDB` · `GeoNode` · `GeoServer` · `pandas` · `NumPy` · `scikit-learn` · `PyTorch` · `Power BI` · `Docker` · `AWS` · `TypeScript` · `React`
+`Python` · `SQL` · `RAG` · `LLM Evaluation` · `BGE-M3` · `Chroma` · `PostgreSQL / PostGIS` · `DuckDB` · `GeoNode` · `GeoServer` · `pandas` · `NumPy` · `scikit-learn` · `PyTorch` · `Power BI` · `Docker` · `AWS` · `TypeScript` · `React`
 
 ## GitHub activity
 
@@ -73,4 +83,4 @@ Map previews: © EuroGeographics and © OpenStreetMap contributors.
 
 </details>
 
-I'm open to conversations and collaboration around energy analytics, geospatial BI and forecasting. [Find me on LinkedIn](https://linkedin.com/in/zhittsova) or [explore my portfolio](https://zhittsova.com/portfolio).
+I'm looking for AI Engineer roles focused on Python applications, retrieval and model evaluation. I'm also interested in data engineering within AI teams. [Find me on LinkedIn](https://linkedin.com/in/zhittsova) or [explore my portfolio](https://zhittsova.com/portfolio).
